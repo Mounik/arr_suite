@@ -10,7 +10,7 @@ Alors - allez à `Install` (à gauche) puis à `Plugin` - descendez à `Install 
 Vous devriez être à [CET EMPLACEMENT](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository) <br /> <br />
 
 Copiez TOUTES les commandes qui y sont listées, quelque chose comme : <br />
-```
+```bash
 # Add Docker's official GPG key:
 sudo apt update
 sudo apt install ca-certificates curl
@@ -21,104 +21,148 @@ sudo chmod a+r /etc/apt/keyrings/docker.asc
 # Add the repository to Apt sources:
 sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
 Types: deb
-URIs: https://download.docker.com/linux/ubuntu
-Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+URIs: https://download.docker.com/linux/debian
+Suites: $(. /etc/os-release && echo "${VERSION_CODENAME}")
 Components: stable
 Signed-By: /etc/apt/keyrings/docker.asc
 EOF
 
 sudo apt update
 ```
-<br />
 
 Puis exécutez :
-```
+```bash
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 sudo systemctl status docker
 sudo docker run hello-world
 ```
 
-Pour tester si docker compose a été installé, exécutez : <br />
-`docker compose` <br />
-
-Vous devriez obtenir beaucoup d'arguments de commande y compris 'version', alors exécutez à nouveau : <br />
-`docker compose version` <br />
-
-Cela montrera que tout fonctionne comme attendu. <br />
-Créez maintenant la structure des dossiers selon ce [TRASH GUIDE](https://trash-guides.info/File-and-Folder-Structure/How-to-set-up/Docker/) : <br />
-
+Pour éviter la commande sudo au début de chaque commande :
+```bash
+sudo usermod -aG docker $USER
+newgrp docker
 ```
+
+Vérifier avec :
+```bash
+docker images
+```
+Vous devriez voir l'images hello-world téléchargé précédemment
+
+Pour tester si docker compose a été installé, exécutez :  
+`docker compose version`
+
+Cela montrera que tout fonctionne comme attendu.  
+Créez maintenant la structure des dossiers selon ce plan et donner lui les droits :
+```txt
+/data
+├── media
+│   ├── movies
+│   ├── music
+│   └── tv
+└── torrents
+    ├── movies
+    ├── music
+    └── tv
+```
+
+```bash
 sudo mkdir -p /data/{torrents/{tv,movies,music},media/{tv,movies,music}}
 sudo apt install tree
 tree /data
 sudo chown -R 1000:1000 /data
-sudo chmod -R a=,a+rX,u+w,g+w /data
+sudo chmod -R 775 /data
 ls -ln /data
 ```
-*(Si vous utilisez torrents + un client Usenet comme NZBGet ou SABnzbd alors vous devez utiliser 
-`mkdir -p /data/{usenet/{incomplete,complete}/{tv,movies,music},media/{tv,movies,music}}` à la place à cette première ligne)*  <br /> <br />
 
-La configuration compose du Trash Guide peut être trouvée [ICI](https://trash-guides.info/File-and-Folder-Structure/How-to-set-up/Docker/) (descendez un peu) <br />
+*(Si vous utilisez torrents + un client Usenet comme NZBGet ou SABnzbd alors vous devez utiliser :  
+```bash
+mkdir -p /data/{usenet/{incomplete,complete}/{tv,movies,music},media/{tv,movies,music}}
+```
+à la place à cette première ligne)*  
+
+
 Vous pouvez trouver plus d'informations sur [SERVARR](https://wiki.servarr.com/radarr/installation/docker) <br />
-Mon fichier compose.yml peut être trouvé [ICI](https://github.com/automation-avenue/arr-new/blob/main/docker-compose.yml) <br />
-Vous pouvez utiliser une commande comme `git clone https://github.com/automation-avenue/arr-new.git` ou simplement copier ce fichier compose depuis ce dépôt : <br />
-`sudo nano compose.yml` - et collez-le <br /> <br />
 
-Notez que les noms d'hôte ne sont pas nécessaires ici car nous avons un réseau dédié `arr_test` pour nos conteneurs, ce qui permet aux services de communiquer en utilisant les noms des conteneurs comme noms d'hôte. <br />
+Vous pouvez utiliser une commande comme 
+```bash
+git clone https://github.com/automation-avenue/arr-new.git
+```
+ ou simplement copier ce fichier compose depuis ce dépôt :
+```
+nano compose.yml
+```
+et collez le
+
+Notez que les noms d'hôte ne sont pas nécessaires ici car nous avons un réseau dédié `arr_plex` pour nos conteneurs, ce qui permet aux services de communiquer en utilisant les noms des conteneurs comme noms d'hôte.
 
 ***************************
 
 # Premier lancement : <br />
 
-Vous devriez pouvoir lancer tous les services maintenant avec un simple `sudo docker compose up -d` :) <br />
-Le fichier compose crée un réseau dédié nommé `arr_test` pour que tous les services communiquent entre eux. <br />
+Vous devriez pouvoir lancer tous les services maintenant avec un simple 
+```bash
+docker compose up -d
+```
+Le fichier compose crée un réseau dédié nommé `arr_plex` pour que tous les services communiquent entre eux. <br />
 
 ***************************
 
-# Configuration des services : <br />
+# Configuration des services :
 
-Maintenant vous devez vous assurer que les paramètres internes de vos applications correspondent, par exemple : <br />
- - Radarr : Dans l'interface web, votre "Dossier Racine" pour votre bibliothèque doit être `/data/media/movies` (`/data/media/tv` pour Sonarr, `/data/media/music` pour Lidarr et `/data/media/books` pour Readarr). <br />
- - qBittorrent : Votre chemin de téléchargement doit être défini sur `/data/torrents` <br />
- - car les deux chemins sont sur le même montage (`/data`), le système d'exploitation les traite comme le même système de fichiers, permettant des liens durs instantanés (aussi connus comme déplacements atomiques) <br />
+Maintenant vous devez vous assurer que les paramètres internes de vos applications correspondent, par exemple :
+ - Radarr : Dans l'interface web, votre "Dossier Racine" pour votre bibliothèque doit être `/data/media/movies` (`/data/media/tv` pour Sonarr, `/data/media/music` pour Lidarr.
+ - qBittorrent : Votre chemin de téléchargement doit être défini sur `/data/torrents`
+ - car les deux chemins sont sur le même montage (`/data`), le système d'exploitation les traite comme le même système de fichiers, permettant des liens durs instantanés (aussi connus comme déplacements atomiques).
 
-Configurons tout cela : <br />
+Configurons tout cela :
 
 
-## qBittorrent : <br />
+## qBittorrent :
 Vérifiez les logs du conteneur qbittorrent : <br />
-`sudo docker logs qbittorrent` <br />
-Vous verrez dans les logs quelque chose comme : <br />
-*Le nom d'utilisateur administrateur de l'WebUI est : admin <br />
-Le mot de passe administrateur de l'WebUI n'a pas été défini. Un mot de passe temporaire est fourni pour cette session : <votre-mot-de-passe-sera-ici>*  <br /><br />
-Maintenant vous pouvez aller à l'URL : <br />
-Si vous êtes sur l'hôte : `http://localhost:8080` <br />
-Depuis un autre appareil sur votre réseau : `http://<adresse ip de l'hôte>:8080` <br />
-et connectez-vous en utilisant les détails fournis dans les logs du conteneur. <br />
-Allez à `Tools - Options - WebUI` - vous pouvez changer l'utilisateur et le mot de passe ici mais n'oubliez pas de descendre et de sauvegarder. <br /><br />
+```bash
+docker logs qbittorrent
+```
+Vous verrez dans les logs quelque chose comme :
+```txt
+*Le nom d'utilisateur administrateur de l'WebUI est : admin
+Le mot de passe administrateur de l'WebUI n'a pas été défini. Un mot de passe temporaire est fourni pour cette session : <votre-mot-de-passe-sera-ici>
+```
+Maintenant vous pouvez aller à l'URL :  
+Si vous êtes sur l'hôte : 
+```bash
+http://localhost:8080
+```
+Depuis un autre appareil sur votre réseau : `http://<adresse ip de l'hôte>:8080` et connectez-vous en utilisant les détails fournis dans les logs du conteneur.
+Allez à `Tools - Options - WebUI` - vous pouvez changer l'utilisateur et le mot de passe ici mais n'oubliez pas de descendre et de sauvegarder. 
 
-Dans le panneau de gauche allez à Categories - All - clic droit et 'ajouter une catégorie' : <br />
+Dans le panneau de gauche allez à `Categories - All - clic droit` et 'ajouter une catégorie' : 
 
-Pour Radarr : `Category: movies` <br />
-`Save Path: movies` (ceci sera ajouté à '/data/torrents/ Chemin de Sauvegarde par Défaut que vous avez défini ci-dessus) <br /> 
-Pour Sonarr : `Category: tv` <br />
-`Save Path: tv` <br />
-Pour Lidarr : `Category: music` <br />
-`Save Path: music` <br />
+Pour Radarr :  
+`Category: movies`  
+`Save Path: movies`  
+(ceci sera ajouté à '/data/torrents/ Chemin de Sauvegarde par Défaut que vous avez défini ci-dessus)  
+Pour Sonarr :  
+`Category: tv`  
+`Save Path: tv`  
+Pour Lidarr :  
+`Category: music`  
+`Save Path: music`  
 
-Créez d'abord les catégories puis seulement configurez les étapes ci-dessous, car faire l'inverse a causé la disparition des Catégories :) <br />
+Créez d'abord les catégories puis seulement configurez les étapes ci-dessous, car faire l'inverse a causé la disparition des Catégories.
 
-Une fois les catégories créées - allez à `Tools - Options - Downloads` et dans `Saving Management` assurez-vous que vos paramètres correspondent à [CECI](https://trash-guides.info/Downloaders/qBittorrent/How-to-add-categories/) <br />
-Donc `Default Torrent Management Mode - Automatic`<br />
+Une fois les catégories créées - allez à `Tools - Options - Downloads` et dans `Saving Management` assurez-vous que vos paramètres correspondent à ce qui suit
+Donc :  
+`Default Torrent Management Mode - Automatic`<br />
 `When Torrent Category changed - Relocate torrent`  <br />
 `When Default Save Path Changed - Switch affected torrents to Manual Mode`  <br />
 `When Category Save Path Changed - Switch affected torrents to Manual Mode`  <br />
-Cochez LES DEUX CASES pour `Use Subcategories` et `Use Category paths in Manual Mode` (NON montré sur Trash Guides) <br />
-Default Save Path: - définissez sur `/data/torrents` (pour correspondre à votre structure de dossiers) - puis descendez et `Save`. <br />
-Sur Trash Guides il montre `Copy .torrent files to` mais c'est optionnel, vous pouvez le laisser vide <br /> <br />
+Cochez LES DEUX CASES pour `Use Subcategories` et `Use Category paths in Manual Mode` <br />
+Default Save Path: - définissez sur `/data/torrents` (pour correspondre à votre structure de dossiers) - puis descendez tout en bas et `Save`. <br />
+
 
 Si vous avez encore des problèmes avec l'ajout de catégories, vous pouvez utiliser une image différente comme celle ci-dessous:
-```
+```yml
   qbittorrent:
     <<: *common-keys
     container_name: qbittorrent
@@ -137,96 +181,127 @@ Si vous avez encore des problèmes avec l'ajout de catégories, vous pouvez util
       - /data:/data
 ```
 
-C'est tout pour qBittorrent.<br /><br />
+C'est tout pour qBittorrent.
 
-Maintenant configurez le service Prowlarr (chacun de ces services nécessitera de configurer utilisateur/mot de passe): <br />
-Utilisez 'Form (login page) authentication' et définissez votre utilisateur et mot de passe pour tous. <br />
+---
 
-## Prowlarr: <br />
-`http://<host_ip>:9696` <br />
-Allez à `Settings - Download Clients` - symbole `+` - Add download client - choisissez `qBittorrent` (sauf si vous avez décidé d'utiliser un client de téléchargement différent) <br />
-DÉCOchez `Use SSL` (sauf si vous avez SSL configuré dans qBittorrent - Tools - Options -WebUI mais par défaut il n'est pas utilisé) <br />
-Host - utilisez `qbittorrent` et port - mettez l'id de port correspondant au WebUI dans docker-compose pour qBittorrent (par défaut `8080`) <br />
-nom d'utilisateur et mot de passe - utilisez celui que vous avez configuré pour qBittorrent à l'étape précédente <br />
-Cliquez sur le petit bouton `Test` en bas, assurez-vous d'obtenir un `tick` vert puis `Save`.<br />
+Maintenant configurez le service Prowlarr (chacun de ces services nécessitera de configurer utilisateur/mot de passe)  
+Utilisez 'Form (login page) authentication' et définissez votre utilisateur et mot de passe pour tous.
 
+## Prowlarr:
+```bash
+http://<host_ip>:9696
+```
 
+Allez à `Settings - Download Clients` - symbole `+` - Add download client - choisissez `qBittorrent` (sauf si vous avez décidé d'utiliser un client de téléchargement différent)  
 
-## Radarr: <br />
-`http://<host_ip>:7878` <br />
-Allez à `Settings - Media Management - Add Root Folder` (descendez en bas) - définissez `/data/media/movies` comme votre dossier racine <br />
-Toujours dans `Settings - Media Management` - cliquez sur Show Advanced - Importing - Use Hardlinks instead of Copy` - assurez-vous qu'il est 'coché' <br /> <br />
+Décochez `Use SSL` (sauf si vous avez SSL configuré dans `qBittorrent - Tools - Options -WebUI` mais par défaut il n'est pas utilisé)  
 
-Optionnel - vous pouvez aussi cocher `Rename Movies` et `Delete empty movie folders during disk scan`, et dans `Import Extra Files` - assurez-vous que cette case est cochée <br />
-et dans le champ `Import Extra files` tapez `srt,sub,nfo` (ces 3 changements sont tous optionnels) <br /><br />
+Host - utilisez `qbittorrent` et port - mettez l'id de port correspondant au WebUI dans docker-compose pour qBittorrent (par défaut `8080`).  
 
-Puis `Settings- Download clients` - cliquez sur le symbole `plus`, choisissez `qBittorrent` etc - fondamentalement les mêmes étapes que pour Prowlarr <br />
-donc Host `qbittorrent`, port `8080`, assurez-vous que SSL est décoché, nom d'utilisateur admin et mot de passe - celui que vous avez configuré pour qBittorrent <br />
-et changez la Category en `movies` (doit correspondre à la catégorie qbittorrent) <br /> <br />
-Maintenant cliquez sur `Test` et si vous avez un 'tick' vert - `Save`.<br />
-Maintenant allez à `Settings - General` - descendez à API key - Copiez API key - retournez à `Prowlarr - Settings - Apps` - cliquez sur `+` - Radarr - collez API key. <br />
-Puis changez `Prowlarr Server` en `http://prowlarr:9696` et `Radarr Server` en `http://radarr:7878` <br />
-Cliquez sur `Test` et si Vert - Save <br /><br />
+nom d'utilisateur et mot de passe - utilisez celui que vous avez configuré pour qBittorrent à l'étape précédente.  
 
-Au fait - vous pouvez voir comment configurer chaque service pour les hardlinks [ICI](https://trash-guides.info/File-and-Folder-Structure/Examples/) <br />
-Vous devez configurer SABnzbd / qbittorrent et tous les autres services que vous exécutez aussi, pas seulement Radarr ou Sonarr <br />
+Cliquez sur le petit bouton `Test` en bas, assurez-vous d'obtenir un `tick` vert puis `Save`.
 
 
 
-## Sonarr: <br />
-`http://<host_ip>:8989` <br />
-Allez à `Settings - Media Management - Add Root Folder` - définissez `/data/media/tv` comme votre dossier racine <br />
-Toujours dans `Settings - Media Management` - Show Advanced - Importing - Use Hardlinks instead of Copy` - assurez-vous qu'il est 'coché' <br /> <br />
+## Radarr:
 
-Optionnel - vous pouvez aussi cocher `Rename Episodes` et `Delete empty Folders - delete empty series and season folders during disk scan` <br />
-Puis dans `Import Extra Files` - assurez-vous que cette case est cochée et dans le champ `Import Extra files` tapez `srt,sub,nfo` (ces 3 changements sont tous optionnels) <br /><br />
+```bash
+http://<host_ip>:7878
+```
+
+Allez à `Settings - Media Management - Add Root Folder` (descendez en bas) - définissez `/data/media/movies` comme votre dossier racine.  
+
+Toujours dans `Settings - Media Management` - cliquez sur `Show Advanced` - `Importing - Use Hardlinks instead of Copy` - assurez-vous qu'il est 'coché'  
+
+Optionnel - vous pouvez aussi cocher `Rename Movies` et `Delete empty movie folders`, et dans `Import Extra Files` - assurez-vous que cette case est cochée
+cocher le champ `Import Extra files` tapez `srt,sub,nfo` (ces 3 changements sont tous optionnels).
+
+Rmonter tout en haut et click `Save`  
+
+Puis `Settings- Download clients` - cliquez sur le symbole `plus`, choisissez `qBittorrent` etc - fondamentalement les mêmes étapes que pour Prowlarr.  
+
+donc Host `qbittorrent`, port `8080`, assurez-vous que SSL est décoché, nom d'utilisateur admin et mot de passe - celui que vous avez configuré pour qBittorrent et changez la Category en `movies` (doit correspondre à la catégorie qbittorrent)  
+
+Maintenant cliquez sur `Test` et si vous avez un 'tick' vert - `Save`.  
+
+Maintenant allez à `Settings - General` - descendez à API key - Copiez API key - retournez à `Prowlarr - Settings - Apps` - cliquez sur `+` - Radarr - collez API key.  
+Puis changez `Prowlarr Server` en `http://prowlarr:9696` et `Radarr Server` en `http://radarr:7878`  
+
+Cliquez sur `Test` et si Vert - `Save`
+
+Au fait - Vous devez configurer SABnzbd / qbittorrent et tous les autres services que vous exécutez aussi, pas seulement Radarr ou Sonarr.
+
+## Sonarr:
+```bash
+http://<host_ip>:8989
+```
+
+Allez à `Settings - Media Management - Add Root Folder` - définissez `/data/media/tv` comme votre dossier racine.  
+Toujours dans `Settings - Media Management` - `Show Advanced - Importing - Use Hardlinks instead of Copy` - assurez-vous qu'il est 'coché'  
+
+Optionnel - vous pouvez aussi cocher `Rename Episodes` et `Delete empty Folders - delete empty series and season folders during disk scan`  
+Puis dans `Import Extra Files` - assurez-vous que cette case est cochée et dans le champ `Import Extra files` tapez `srt,sub,nfo` (ces 3 changements sont tous optionnels)  
+Remonter tout en haut et cliquer sur `Save`
 
 Puis `Settings- Download clients` - cliquez sur le symbole `plus`, choisissez `qBittorrent` etc - fondamentalement les mêmes étapes que pour les services précédents<br />
-Host `qbittorrent`, port `8080`, assurez-vous que SSL est décoché, nom d'utilisateur admin et mot de passe - celui que vous avez configuré pour qBittorrent <br />
-et changez la Category en 'tv' (par défaut c'est 'tv-sonarr', mais vous devez correspondre à la catégorie qbittorrent) <br /><br />
-Maintenant cliquez sur 'Test' et si vous avez un 'tick' vert - Save.<br />
-Maintenant allez à `Settings - General` - descendez à API key - Copiez API key - retournez à Prowlarr - Settings - Apps - cliquez sur '+' - Sonarr - collez API key. <br />
-Puis changez `Prowlarr Server` en `http://prowlarr:9696` et `Sonarr Server` en `http://sonarr:8989`<br />
+Host `qbittorrent`, port `8080`, assurez-vous que SSL est décoché, nom d'utilisateur admin et mot de passe - celui que vous avez configuré pour qBittorrent et changez la Category en `tv` (par défaut c'est `tv-sonarr`, mais vous devez correspondre à la catégorie qbittorrent)  
+
+Maintenant cliquez sur `Test` et si vous avez un `tick` vert - `Save`.  
+
+Maintenant allez à `Settings - General` - descendez à API key - Copiez API key - retournez sur `Prowlarr` dans `Settings - Apps` - cliquez sur `+` - `Sonarr` - collez API key.  
+Puis changez `Prowlarr Server` en `http://prowlarr:9696` et `Sonarr Server` en `http://sonarr:8989`  
+
 Cliquez sur `Test` et si Vert - `Save`<br />
 
 
 
 ## Lidarr: <br />
-`http://<host_ip>:8686` <br />
-Allez à Settings - Media Management - Add Root Folder - définissez le chemin vers /data/media/music comme votre dossier racine, définissez le nom en Root ou autre et sauvegardez <br />
-Puis Settings- Download clients - cliquez sur le symbole 'plus', choisissez qBittorrent etc - fondamentalement les mêmes étapes que pour les services précédents<br />
-Host 'qbittorrent', port 8080, assurez-vous que SSL est décoché, nom d'utilisateur admin et mot de passe - celui que vous avez configuré pour qBittorrent <br />
-et changez la Category en 'music' (par défaut c'est 'lidarr', mais vous devez correspondre à la catégorie qbittorrent) <br />
-Maintenant cliquez sur 'Test' et si vous avez un 'tick' vert - Save.
-Maintenant allez à Settings - General - descendez à API key - Copiez API key - retournez à Prowlarr - Settings - Apps - cliquez sur '+' - Sonarr - collez API key. <br />
-Puis changez `Prowlarr Server` en `http://prowlarr:9696` et `Lidarr Server` en `http://lidarr:8686` <br />
-Cliquez sur `Test` et si Vert - `Save` <br />
+```bash
+http://<host_ip>:8686
+```
 
-## Readarr: <br />
-`http://<host_ip>:8787` <br />
-Allez à Settings - Media Management - Add Root Folder - définissez le chemin vers /data/media/books comme votre dossier racine, nommez-le Books ou comme vous voulez et sauvegardez <br />
-Puis Settings- Download clients - cliquez sur le symbole 'plus', choisissez qBittorrent etc - fondamentalement les mêmes étapes que pour les services précédents<br />
-Host 'qbittorrent', port 8080, assurez-vous que SSL est décoché, nom d'utilisateur admin et mot de passe - celui que vous avez configuré pour qBittorrent <br />
-et changez la Category en 'books' (par défaut c'est 'readarr', mais vous devez correspondre à la catégorie qbittorrent) <br />
-Maintenant cliquez sur 'Test' et si vous avez un 'tick' vert - Sauvegardez.
-Maintenant allez à Settings - General - descendez à API key - Copiez l'API key - retournez à Prowlarr - Settings - Apps -cliquez '+' - Readarr - collez l'API key. <br />
-Puis changez `Prowlarr Server` en `http://prowlarr:9696` et `Readarr Server` en `http://readarr:8787` <br />
-Cliquez sur `Test` et si c'est Vert - `Save` <br />
+Allez dans `Settings` - `Media Management` - `Add Root Folder` - définissez le chemin vers `/data/media/music` comme votre dossier racine, définissez le nom en Music ou autre et sauvegardez.  
 
+Puis dans `Settings` - `Download clients` - cliquez sur le symbole `plus`, choisissez qBittorrent etc - fondamentalement les mêmes étapes que pour les services précédents.  
+Host `qbittorrent`, port `8080`, assurez-vous que SSL est décoché, nom d'utilisateur admin et mot de passe - celui que vous avez configuré pour qBittorrent.  
+Ensuite changez la Category en `music` (par défaut c'est `lidarr`, mais vous devez correspondre à la catégorie qbittorrent)  
 
-## Bazarr: <br />
-`http://<host_ip>:6767` <br />
-Langues : Allez à Settings > Languages et créez un "Language Profile" (par exemple, "English" ou "Any"). <br />
-Fournisseurs : Allez à Settings > Providers et ajoutez vos sources de sous-titres (OpenSubtitles.org, Subscene, etc.). La plupart nécessitent un compte gratuit. <br />
-Synchronisation : Après avoir connecté Radarr/Sonarr, allez à l'onglet Series ou Movies et cliquez sur "Update" pour importer votre bibliothèque existante. <br />
-Note : Bazarr utilise le chemin `/data/media` au lieu de `/data` pour l'accès aux médias, comme configuré dans le fichier compose. <br />
+Maintenant cliquez sur `Test` et si vous avez un `tick` vert - `Save`.  
+
+Maintenant allez à `Settings` - `General` - descendez à API key - Copiez API key - retournez sur `Prowlarr` - `Settings` - `Apps` - cliquez sur `+` - `Lidarr` - collez API key.  
+
+Puis changez `Prowlarr Server` en `http://prowlarr:9696` et `Lidarr Server` en `http://lidarr:8686`  
+
+Cliquez sur `Test` et si Vert - `Save`
+
+## Bazarr:
+```bash
+http://<host_ip>:6767
+```
+
+Langues : Allez à `Settings` > `Languages`.
+
+Dans le filtre `Languages Filter` taper `French` ou `English` ou les 2, ou n'importe quel autres langue qui vous convienne. Enregistrer, ensuite dans `Source` cliquer sur `Add Equal`. Enregistrer
+
+Dans `Languages Profile` - `Add New Profile`.
+Créer un prfil par langages que vous aurez choisi.
+
+N'oubliez pas d'enregistrer.
+
+Fournisseurs : Allez à `Settings` > `Providers` et ajoutez vos sources de sous-titres avec `Enable Providers` - `+` (OpenSubtitles.org, Subscene, etc.). La plupart nécessitent un compte gratuit.  
+
+Synchronisation : Après avoir connecté Radarr/Sonarr, allez à l'onglet Series ou Movies et cliquez sur `Update` pour importer votre bibliothèque existante.  
+
+Note : Bazarr utilise le chemin `/data/media` au lieu de `/data` pour l'accès aux médias, comme configuré dans le fichier compose.  
 
 ****************************
 
 ## Redémarrage des services : <br />
 Il pourrait être judicieux de redémarrer tous les services et voir s'ils se lancent comme attendu : <br />
 
-```
+```bash
 sudo docker compose down
 sudo docker compose up -d
 ```

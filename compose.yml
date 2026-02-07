@@ -135,15 +135,15 @@ services:
       - LOG_LEVEL=info
 
 ###############################################
-# PLEX - Media Server
+# JELLYFIN - Media Server
 ###############################################
 
-  plex:
+  jellyfin:
     <<: *common-keys
-    container_name: plex
+    container_name: jellyfin
     image: ghcr.io/linuxserver/plex:1.42.2
     ports:
-      - 32400:32400
+      - 8096:8096
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /docker/appdata/plex:/config
