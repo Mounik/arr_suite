@@ -1,4 +1,4 @@
-# Stack ARR NOUVELLE VERSION <br />
+# Stack ARR<br />
 Ci-dessous les instructions pour les systèmes d'exploitation Debian / Ubuntu, mais docker peut être exécuté nativement sur n'importe quelle distribution linux <br />
 et si vous avez Windows ou Mac - vous pouvez utiliser des outils comme [Docker Desktop](https://docs.docker.com/desktop/) pour exécuter des conteneurs docker. <br />
 
