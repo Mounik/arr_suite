@@ -75,6 +75,19 @@ services:
       - /data/media:/data/media
 
 ###############################################
+# OVERSEER - Request Manager
+###############################################
+
+  overseerr:
+    <<: *common-keys
+    container_name: overseerr
+    image: sctx/overseerr:latest
+    ports:
+      - 5055:5055
+    volumes:
+      - /docker/appdata/overseerr:/app/config
+
+###############################################
 # PROWLARR - Indexer Manager
 ###############################################
 
@@ -126,19 +139,6 @@ services:
       - PGID=1000
       - TZ=Europe/Paris
       - LOG_LEVEL=info
-
-###############################################
-# OVERSEER - Request Manager
-###############################################
-
-  overseerr:
-    <<: *common-keys
-    container_name: overseerr
-    image: sctx/overseerr:latest
-    ports:
-      - 5055:5055
-    volumes:
-      - /docker/appdata/overseerr:/app/config
 
 ###############################################
 # JELLYFIN - Media Server

@@ -431,3 +431,19 @@ Vous devrez changer le port externe pour l'un des services vers quelque chose qu
 
 Pour sabnzbd vous pouvez utiliser la structure de dossiers montrée [ICI](https://trash-guides.info/File-and-Folder-Structure/How-to-set-up/Docker/) <br />
 puis assigner des catégories (similaire à ce que nous avons fait dans qbittorrent) en suivant [CE GUIDE](https://trash-guides.info/Downloaders/SABnzbd/Basic-Setup/) <br />
+<<<<<<< HEAD
+=======
+
+
+
+## Cloudflared :
+Et dans .env (à côté de compose.yml) :
+
+HOST_LAN_IP=192.168.1.10
+CF_TUNNEL_TOKEN=ton_token_cloudflare
+
+Routes à créer dans Cloudflare Tunnel :
+
+- over.mounik.ovh -> http://overseerr:5055
+- jelly.mounik.ovh -> http://jellyfin:8096
+>>>>>>> c352a6d (modif)
