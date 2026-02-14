@@ -126,7 +126,7 @@ docker logs qbittorrent
 Vous verrez dans les logs quelque chose comme :
 ```txt
 *Le nom d'utilisateur administrateur de l'WebUI est : admin
-Le mot de passe administrateur de l'WebUI n'a pas été défini.
+Le mot de passe administrateur de l'WebUI n'a pas été défini.  
 Un mot de passe temporaire est fourni pour cette session : <votre-mot-de-passe-sera-ici>
 ```
 Maintenant vous pouvez aller à l'URL :  
