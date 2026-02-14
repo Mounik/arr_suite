@@ -79,7 +79,7 @@ ls -ln /data
 ```bash
 mkdir -p /data/{usenet/{incomplete,complete}/{tv,movies,music},media/{tv,movies,music}}
 ```
-à la place à cette première ligne)*  
+à la place à cette première ligne)*
 
 
 Vous pouvez trouver plus d'informations sur [SERVARR](https://wiki.servarr.com/radarr/installation/docker) <br />
